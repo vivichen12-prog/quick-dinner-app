@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>極速食光 — 忙碌職業婦女的極速出餐與家庭飲食管家</title>
+  <!-- iOS PWA 支援與 Apple 行動端專屬優化 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="極速食光">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+  <!-- 引入 Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- 連結自訂 CSS -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <!-- ★ 請在部署前將下方兩個值換成您的 Supabase 專案資訊 ★ -->
+  <script>
+    const SUPABASE_URL      = 'https://tuqgfjgnwosxlfndwani.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1cWdmamdud29zeGxmbmR3YW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNTE3NDIsImV4cCI6MjA5NTkyNzc0Mn0.DZTvigZzWVozUCQwDUuzesyuFgrieubfpZE7zkM4Q4g';
+    const API_BASE          = '';   // Vercel 部署後為空字串即可（同 origin）
+  </script>
+</head>
+<body>
+
+  <!-- 頂部品牌導覽列 (桌機平板端) -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-logo" onclick="switchView('home')">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text">極速食光 <span class="logo-subtext">ExpressDinner</span></span>
+      </div>
+      <nav class="desktop-nav">
+        <button class="nav-item active" id="nav-d-home" onclick="switchView('home')">首頁</button>
+        <button class="nav-item" id="nav-d-pantry" onclick="switchView('pantry')">智慧冰箱配對</button>
+        <button class="nav-item" id="nav-d-planner" onclick="switchView('planner')">一鍵週菜單</button>
+        <button class="nav-item" id="nav-d-commute" onclick="switchView('commute')">🚇 通勤補貨</button>
+        <button class="nav-item" id="nav-d-cooking" onclick="switchView('cooking')" style="display: none;">並行烹飪助手</button>
+      </nav>
+      <div class="user-profile" id="header-user-profile" onclick="openAuthModal()" title="登入 / 會員中心" style="cursor:pointer">
+        <div class="avatar" id="header-avatar">?</div>
+        <span class="username" id="header-username">登入</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 離線狀態提示橫幅 -->
+  <div id="offline-indicator">
+    <span>📶</span>
+    <span>已切換為離線模式，食譜資料來自本機快取</span>
+  </div>
+
+  <!-- 主要內容容器 (SPA 視圖切換區) -->
+  <main class="app-main">
+
+    <!-- ==================== VIEW 1: 首頁 ==================== -->
+    <section id="view-home" class="app-view active">
+      <!-- 溫馨情境 Hero Banner -->
+      <div class="hero-section">
+        <div class="hero-content">
+          <span class="hero-tag">舒壓出餐・手作溫度</span>
+          <h1>下班後 15 分鐘<br><span class="highlight-text">給全家最溫馨的美味</span></h1>
+          <p>專為忙碌職業婦女打造的並行烹飪引擎，消除今晚吃什麼的決策疲勞，一鍵採買，極速出餐。</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="switchView('pantry')">
+              <span>智慧冰箱配對</span>
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+            <button class="btn btn-secondary" onclick="switchView('planner')">規劃本週菜單</button>
+          </div>
+        </div>
+        <div class="hero-badge-card">
+          <div class="badge-item">
+            <div class="badge-icon">⏱️</div>
+            <div class="badge-info">
+              <h4>下班極速</h4>
+              <p>平均 15-20 分開飯</p>
+            </div>
+          </div>
+          <div class="badge-item">
+            <div class="badge-icon">🛒</div>
+            <div class="badge-info">
+              <h4>一鍵直達車</h4>
+              <p>免去超市挑選時間</p>
+            </div>
+          </div>
+          <div class="badge-item">
+            <div class="badge-icon">🍜</div>
+            <div class="badge-info">
+              <h4>國際風味</h4>
+              <p>網羅各式特色料理</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 核心功能入口 Hub -->
+      <div class="section-title-wrap">
+        <h2>今晚，您想如何出餐？</h2>
+        <p>點選下方功能，開啟您的極速廚房助手</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- 卡片 1: 冰箱配對 -->
+        <div class="feature-card" onclick="switchView('pantry')">
+          <div class="feature-icon-wrapper f-orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              <path d="M2 12h20"/>
+            </svg>
+          </div>
+          <h3>智慧冰箱配對</h3>
+          <p>輸入冰箱剩餘的蔬菜或肉類，AI 自動為您拼湊出 15 分鐘極速食譜，拒絕食材浪費。</p>
+          <div class="feature-link">立即匹配 &rarr;</div>
+        </div>
+
+        <!-- 卡片 2: 一鍵週菜單 -->
+        <div class="feature-card" onclick="switchView('planner')">
+          <div class="feature-icon-wrapper f-green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <h3>一鍵週菜單與採買</h3>
+          <p>自動規劃週間五天的晚餐，一鍵將去重加總後的採買清單送進全聯/家樂福購物車。</p>
+          <div class="feature-link">規劃週菜單 &rarr;</div>
+        </div>
+
+        <!-- 卡片 3: 免開火專區 -->
+        <div class="feature-card" onclick="triggerLazyFilter()">
+          <div class="feature-icon-wrapper f-gold">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/>
+              <line x1="12" y1="2" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <h3>免開火超省力專區</h3>
+          <p>今晚累得不想洗鍋子？善用烤箱、微波爐與氣炸鍋，零油煙、免看火出餐。</p>
+          <div class="feature-link">尋找懶人食譜 &rarr;</div>
+        </div>
+      </div>
+
+      <!-- 精選食譜推薦 -->
+      <div class="section-title-wrap">
+        <h2>熱門多國極速食譜</h2>
+        <p>深受職業媽媽喜愛的週間高回饋料理，兼顧營養與驚人速度</p>
+      </div>
+
+      <div class="cuisine-tabs" id="cuisine-tabs">
+        <button class="cuisine-tab active" data-cuisine="全部" onclick="setCuisineFilter('全部')">全部</button>
+        <button class="cuisine-tab" data-cuisine="台式" onclick="setCuisineFilter('台式')">🇹🇼 台式</button>
+        <button class="cuisine-tab" data-cuisine="日式" onclick="setCuisineFilter('日式')">🇯🇵 日式</button>
+        <button class="cuisine-tab" data-cuisine="韓式" onclick="setCuisineFilter('韓式')">🇰🇷 韓式</button>
+        <button class="cuisine-tab" data-cuisine="義式" onclick="setCuisineFilter('義式')">🇮🇹 義式</button>
+        <button class="cuisine-tab" data-cuisine="美式" onclick="setCuisineFilter('美式')">🇺🇸 美式</button>
+        <button class="cuisine-tab" data-cuisine="泰式" onclick="setCuisineFilter('泰式')">🇹🇭 泰式</button>
+        <button class="cuisine-tab" data-cuisine="中式" onclick="setCuisineFilter('中式')">🇨🇳 中式</button>
+        <button class="cuisine-tab" data-cuisine="東南亞" onclick="setCuisineFilter('東南亞')">🌴 東南亞</button>
+        <button class="cuisine-tab" data-cuisine="越式" onclick="setCuisineFilter('越式')">🇻🇳 越式</button>
+        <button class="cuisine-tab" data-cuisine="印度" onclick="setCuisineFilter('印度')">🇮🇳 印度</button>
+        <button class="cuisine-tab" data-cuisine="墨式" onclick="setCuisineFilter('墨式')">🇲🇽 墨式</button>
+        <button class="cuisine-tab" data-cuisine="法式" onclick="setCuisineFilter('法式')">🇫🇷 法式</button>
+      </div>
+
+      <div class="recipes-slider" id="featured-recipes-container">
+        <!-- 食譜卡片由 JS 動態生成 -->
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 2: 冰箱配對 ==================== -->
+    <section id="view-pantry" class="app-view">
+      <div class="view-header">
+        <h1>智慧冰箱配對</h1>
+        <p>勾選或輸入您冰箱現有的食材，AI 將快速調配最省時、最對胃的晚餐食譜。</p>
+      </div>
+
+      <div class="pantry-layout">
+        <!-- 左側/上方食材選擇區 -->
+        <div class="pantry-selector-panel">
+          <div class="panel-section">
+            <div class="panel-subtitle">🥦 蔬菜類 (Veggies)</div>
+            <div class="ingredient-chips" id="chips-veggies">
+              <!-- JS 動態生成 -->
+            </div>
+          </div>
+          
+          <div class="panel-section">
+            <div class="panel-subtitle">🥩 蛋白質類 (Proteins)</div>
+            <div class="ingredient-chips" id="chips-proteins">
+              <!-- JS 動態生成 -->
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <div class="panel-subtitle">🍜 主食與澱粉 (Staples)</div>
+            <div class="ingredient-chips" id="chips-staples">
+              <!-- JS 動態生成 -->
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <div class="panel-subtitle">🧅 辛香佐料 (Pantry Staples)</div>
+            <div class="ingredient-chips" id="chips-pantry">
+              <!-- JS 動態生成 -->
+            </div>
+          </div>
+
+          <div class="pantry-manual-input">
+            <input type="text" id="manual-ingredient-input" placeholder="冰箱有其他食材？輸入並按 Enter 鍵新增...">
+            <button class="btn btn-secondary-compact" onclick="addManualIngredient()">新增</button>
+          </div>
+
+          <div class="pantry-action-footer">
+            <button class="btn btn-secondary" onclick="clearSelectedIngredients()">全部清除</button>
+            <button class="btn btn-primary" onclick="runPantryMatching()">開始 AI 剩食配對</button>
+          </div>
+        </div>
+
+        <!-- 右側/下方匹配結果區 -->
+        <div class="pantry-results-panel">
+          <div class="results-header">
+            <h3>匹配結果 <span class="badge" id="match-count">0 首選</span></h3>
+            <p>已為您排序出高重疊度、極速出餐的推薦食譜</p>
+          </div>
+          
+          <div class="results-list" id="pantry-results-container">
+            <div class="empty-state">
+              <div class="empty-icon">🥦</div>
+              <h4>尚未選取食材</h4>
+              <p>請在左側點選 1-3 種冰箱剩餘食材，系統將即時為您推薦最適合的食譜。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 3: 一鍵週菜單 ==================== -->
+    <section id="view-planner" class="app-view">
+      <div class="view-header">
+        <h1>本週極速菜單規劃</h1>
+        <p>已為您避開重複菜色，編排好週間五日的多國營養晚餐。您也可以一鍵將所需食材發送至超市購物車。</p>
+      </div>
+
+      <div class="planner-layout">
+        <!-- 左側：週一至週五菜單 -->
+        <div class="planner-calendar-panel">
+          <h3 class="panel-title">📅 週間菜單 (週一至週五)</h3>
+          <div class="calendar-list" id="calendar-list-container">
+            <!-- JS 動態生成 -->
+          </div>
+          <button class="btn btn-secondary btn-full" onclick="regenerateWeeklyPlanner()">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span>隨機重組一組週菜單</span>
+          </button>
+        </div>
+
+        <!-- 右側：合併採買清單 -->
+        <div class="planner-cart-panel">
+          <div class="cart-header-wrap">
+            <h3 class="panel-title">🛒 綜合採買清單</h3>
+            <span class="badge badge-green" id="grocery-item-count">0 項食材</span>
+          </div>
+          <p class="panel-desc">已自動將五日菜單食材去重、加總合併，並標記最佳「省時替代方案」。</p>
+
+          <div class="grocery-list" id="grocery-list-container">
+            <!-- JS 動態生成 -->
+          </div>
+
+          <div class="cart-purchase-action">
+            <div class="cart-total-estimate">
+              <span>預估總計</span>
+              <span class="total-price" id="cart-total-price">NT$ 0</span>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="openSupermarketModal('weekly')">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              <span>一鍵送全聯/家樂福購物車</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 5: 通勤補貨快線 ==================== -->
+    <section id="view-commute" class="app-view">
+      <div class="commute-page-wrap">
+
+        <!-- 頂部通勤狀態橫幅 -->
+        <div class="commute-header-banner">
+          <div class="commute-mode-label">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>
+            </svg>
+            通勤補貨快線
+          </div>
+          <div class="commute-clock" id="commute-clock">--:--</div>
+        </div>
+
+        <!-- 倒數計時卡片 -->
+        <div class="commute-timer-card">
+          <div class="timer-question">還有幾分鐘到家？</div>
+          <div class="timer-slider-wrap">
+            <input type="range" id="commute-slider" min="10" max="90" step="5" value="35"
+                   oninput="updateArrivalTime()" class="commute-range-input">
+            <div class="timer-display">
+              <span class="timer-minutes" id="commute-minutes">35</span>
+              <span class="timer-label">分鐘</span>
+            </div>
+          </div>
+          <div class="arrival-estimate">
+            預計到家：<strong id="arrival-time">--:--</strong>
+            <span class="arrival-badge" id="arrival-badge">🛵 外送可趕上</span>
+          </div>
+        </div>
+
+        <!-- 今晚食譜 -->
+        <div class="commute-section-wrap">
+          <div class="commute-section-header">
+            <h3>今晚的菜</h3>
+            <button class="change-recipe-btn" onclick="changeCommuteRecipe()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              換一道
+            </button>
+          </div>
+          <div id="commute-recipe-card"></div>
+        </div>
+
+        <!-- 需要補貨的食材 -->
+        <div class="commute-section-wrap">
+          <div class="commute-section-header">
+            <h3>採買清單 <span class="missing-count" id="missing-count">0</span></h3>
+            <span class="missing-note">勾選已有的食材</span>
+          </div>
+          <div class="ingredients-list-card">
+            <div id="missing-ingredients-list"></div>
+          </div>
+        </div>
+
+        <!-- 平台選擇 -->
+        <div class="commute-section-wrap">
+          <div class="commute-section-header">
+            <h3>選擇採買平台</h3>
+            <span class="platform-rec-label" id="platform-rec-label">依到家時間推薦</span>
+          </div>
+
+          <!-- 推薦平台大卡 -->
+          <div id="recommended-platform-card"></div>
+
+          <!-- 所有平台 2x2 格 -->
+          <div class="platforms-grid" id="platforms-grid"></div>
+
+          <!-- 複製清單 -->
+          <div class="copy-list-section">
+            <button class="copy-list-btn" onclick="copyShoppingListToClipboard()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              複製採買清單文字
+            </button>
+            <p class="copy-note">若平台無法直跳，可複製後貼入超市 App 搜尋</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 4: 並行烹飪助手 ==================== -->
+    <section id="view-cooking" class="app-view">
+      <div class="cooking-view-container" id="cooking-active-container">
+        <!-- 由 JS 動態生成完整的並行烹飪助手介面 -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 行動裝置底部浮動毛玻璃導覽列 -->
+  <nav class="mobile-nav">
+    <button class="mobile-nav-item active" id="nav-m-home" onclick="switchView('home')">
+      <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span>首頁</span>
+    </button>
+    <button class="mobile-nav-item" id="nav-m-pantry" onclick="switchView('pantry')">
+      <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+      <span>配對</span>
+    </button>
+    <button class="mobile-nav-item" id="nav-m-planner" onclick="switchView('planner')">
+      <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      <span>週規劃</span>
+    </button>
+    <button class="mobile-nav-item" id="nav-m-commute" onclick="switchView('commute')">
+      <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      <span>補貨</span>
+    </button>
+    <button class="mobile-nav-item" id="nav-m-cooking" onclick="switchView('cooking')" style="display: none;">
+      <svg class="mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span>烹飪中</span>
+    </button>
+  </nav>
+
+  <!-- ==================== 一鍵採買 超市購物車彈窗 (Modal) ==================== -->
+  <div class="modal-overlay" id="supermarket-modal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeSupermarketModal()">&times;</button>
+      <div class="modal-header">
+        <span class="modal-logo-badge">🛒 智能直達車</span>
+        <h2>一鍵同步至超市購物車</h2>
+        <p>系統已為您匹配最划算、免洗切的超市規格商品</p>
+      </div>
+
+      <div class="supermarket-selector">
+        <label class="supermarket-option active" id="sm-option-px" onclick="selectSupermarket('px')">
+          <div class="sm-brand">全聯線上購 <span class="brand-badge px">PXMart</span></div>
+          <div class="sm-meta">配對率 95% | 最佳省時蔬菜包供應</div>
+        </label>
+        <label class="supermarket-option" id="sm-option-carrefour" onclick="selectSupermarket('carrefour')">
+          <div class="sm-brand">家樂福線上購物 <span class="brand-badge carrefour">Carrefour</span></div>
+          <div class="sm-meta">配對率 92% | 多國料理香料最齊全</div>
+        </label>
+      </div>
+
+      <div class="modal-body">
+        <h4 class="items-subtitle">📦 配對商品清單 (<span id="modal-item-count">0</span>項)</h4>
+        <div class="matched-items-list" id="modal-items-container">
+          <!-- JS 動態生成配對成功的實體商品 -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="modal-price-summary">
+          <div class="price-row">
+            <span>商品小計:</span>
+            <span id="modal-subtotal">NT$ 0</span>
+          </div>
+          <div class="price-row highlight">
+            <span>一鍵總結 (含外送):</span>
+            <span class="highlight-price" id="modal-total">NT$ 0</span>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full btn-large" onclick="executeSupermarketCheckout()">
+          <span>確認並同步至超市 APP 結帳</span>
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <p class="modal-disclaimer">💡 點選後將以背景 Deep Link 連線技術為您將商品塞入您的超市 App 購物車，您可以直接開啟該 App 完成最終刷卡與外送預約。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 提示浮窗 (Toast) -->
+  <div class="toast" id="app-toast">這是一個提示訊息</div>
+
+  <!-- ==================== 登入 / 會員中心 彈窗 ==================== -->
+  <div id="auth-modal" class="auth-overlay" onclick="handleAuthOverlayClick(event)">
+    <div class="auth-card">
+      <button class="auth-close" onclick="closeAuthModal()">✕</button>
+      <div class="auth-logo">⚡ 極速食光</div>
+      <p class="auth-tagline">登入以同步收藏食譜與購物清單</p>
+
+      <!-- Tab 切換 -->
+      <div class="auth-tabs" id="auth-tabs">
+        <button class="auth-tab active" id="tab-login"    onclick="switchAuthTab('login')">登入</button>
+        <button class="auth-tab"        id="tab-register" onclick="switchAuthTab('register')">註冊</button>
+      </div>
+
+      <!-- 登入表單 -->
+      <div id="auth-form-login">
+        <input type="email"    id="auth-email"    class="auth-input" placeholder="電子信箱">
+        <input type="password" id="auth-password" class="auth-input" placeholder="密碼">
+        <button class="auth-submit" onclick="handleLogin()">登入帳號</button>
+      </div>
+
+      <!-- 註冊表單 -->
+      <div id="auth-form-register" style="display:none">
+        <input type="email"    id="reg-email"    class="auth-input" placeholder="電子信箱">
+        <input type="password" id="reg-password" class="auth-input" placeholder="密碼（至少 6 位）">
+        <input type="text"     id="reg-name"     class="auth-input" placeholder="暱稱（選填）">
+        <button class="auth-submit" onclick="handleRegister()">建立帳號</button>
+      </div>
+
+      <!-- 已登入狀態 -->
+      <div id="auth-logged-in" style="display:none">
+        <div class="auth-user-row">
+          <div class="auth-user-avatar" id="auth-user-avatar">?</div>
+          <div class="auth-user-info">
+            <div class="auth-user-name"  id="auth-user-name">--</div>
+            <div class="auth-user-email" id="auth-user-email">--</div>
+          </div>
+        </div>
+        <div class="auth-stats-row">
+          <div class="auth-stat-box">
+            <span class="auth-stat-num" id="fav-count">0</span>
+            <span class="auth-stat-label">道收藏食譜</span>
+          </div>
+        </div>
+        <button class="auth-signout" onclick="handleSignOut()">登出</button>
+      </div>
+
+      <p class="auth-hint" id="auth-hint"></p>
+    </div>
+  </div>
+
+  <!-- 連結應用邏輯 JS -->
+  <script src="app.js"></script>
+</body>
+</html>
