@@ -3141,26 +3141,24 @@ function showToast(message) {
   setTimeout(() => toast.classList.remove("active"), 4500);
 }
 
-// ==================== 18. Supabase Auth & 收藏同步 ====================
-let _supabase = null;
+// ==================== 18. Auth & 收藏同步（透過後端 API，無前端 key）====================
 
 function initSupabase() {
-  if (typeof supabase === "undefined") return;
-  if (!SUPABASE_URL || SUPABASE_URL === "YOUR_SUPABASE_URL") return;
-  _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // 啟動時檢查是否已有登入 session（httpOnly cookie 由瀏覽器自動帶上）
+  checkAuthSession();
+}
 
-  _supabase.auth.onAuthStateChange(async (_event, session) => {
-    if (session?.user) {
-      appState.currentUser = session.user;
+async function checkAuthSession() {
+  try {
+    const resp = await fetch(`${API_BASE}/api/auth/me`, { credentials: "include" });
+    const { user } = await resp.json();
+    if (user) {
+      appState.currentUser = user;
       await syncFavoritesFromServer();
-      updateHeaderUser(session.user);
-    } else {
-      appState.currentUser = null;
-      appState.userFavorites.clear();
-      updateHeaderUser(null);
+      updateHeaderUser(user);
+      renderFeaturedRecipes();
     }
-    renderFeaturedRecipes();
-  });
+  } catch (_) {}
 }
 
 function updateHeaderUser(user) {
@@ -3168,7 +3166,7 @@ function updateHeaderUser(user) {
   const usernameEl = document.getElementById("header-username");
   if (!avatarEl || !usernameEl) return;
   if (user) {
-    const name = user.user_metadata?.display_name || user.email?.split("@")[0] || "我";
+    const name = user.name || user.email?.split("@")[0] || "我";
     avatarEl.textContent   = name.charAt(0).toUpperCase();
     usernameEl.textContent = name;
   } else {
@@ -3178,13 +3176,9 @@ function updateHeaderUser(user) {
 }
 
 async function syncFavoritesFromServer() {
-  if (!_supabase || !appState.currentUser) return;
+  if (!appState.currentUser) return;
   try {
-    const session = (await _supabase.auth.getSession()).data.session;
-    if (!session) return;
-    const resp = await fetch(`${API_BASE}/api/favorites`, {
-      headers: { Authorization: `Bearer ${session.access_token}` }
-    });
+    const resp = await fetch(`${API_BASE}/api/favorites`, { credentials: "include" });
     if (!resp.ok) return;
     const { favorites } = await resp.json();
     appState.userFavorites = new Set(favorites.map(f => f.recipe_id));
@@ -3195,37 +3189,28 @@ async function syncFavoritesFromServer() {
 
 async function toggleFavorite(recipeId, event) {
   event.stopPropagation();
-  if (!_supabase || !appState.currentUser) {
+  if (!appState.currentUser) {
     openAuthModal();
     showToast("請先登入以收藏食譜 ❤️");
     return;
   }
   const isFav = appState.userFavorites.has(recipeId);
-  const btn = event.currentTarget;
+  const btn   = event.currentTarget;
   btn.style.opacity = "0.5";
-
   try {
-    const session = (await _supabase.auth.getSession()).data.session;
-    const method  = isFav ? "DELETE" : "POST";
     const resp = await fetch(`${API_BASE}/api/favorites`, {
-      method,
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-      body: JSON.stringify({ recipeId })
+      method:      isFav ? "DELETE" : "POST",
+      headers:     { "Content-Type": "application/json" },
+      credentials: "include",
+      body:        JSON.stringify({ recipeId })
     });
     if (resp.ok) {
-      if (isFav) {
-        appState.userFavorites.delete(recipeId);
-        showToast("已取消收藏");
-      } else {
-        appState.userFavorites.add(recipeId);
-        showToast("已加入收藏 ❤️");
-      }
+      if (isFav) { appState.userFavorites.delete(recipeId); showToast("已取消收藏"); }
+      else       { appState.userFavorites.add(recipeId);    showToast("已加入收藏 ❤️"); }
       const el = document.getElementById("fav-count");
       if (el) el.textContent = appState.userFavorites.size;
     }
-  } catch (_) {
-    showToast("網路錯誤，請稍後再試");
-  }
+  } catch (_) { showToast("網路錯誤，請稍後再試"); }
   btn.style.opacity = "";
   renderFeaturedRecipes();
 }
@@ -3269,7 +3254,7 @@ function _showAuthLoggedIn(user) {
   document.getElementById("auth-form-login").style.display    = "none";
   document.getElementById("auth-form-register").style.display = "none";
   document.getElementById("auth-logged-in").style.display     = "";
-  const name = user.user_metadata?.display_name || user.email?.split("@")[0] || "我";
+  const name    = user.name || user.email?.split("@")[0] || "我";
   const avatarEl = document.getElementById("auth-user-avatar");
   if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
   const nameEl  = document.getElementById("auth-user-name");
@@ -3281,24 +3266,33 @@ function _showAuthLoggedIn(user) {
 }
 
 async function handleLogin() {
-  if (!_supabase) { showToast("Supabase 尚未設定，請先填入 API key"); return; }
   const email    = document.getElementById("auth-email")?.value.trim();
   const password = document.getElementById("auth-password")?.value;
   const hint     = document.getElementById("auth-hint");
   if (!email || !password) { if (hint) hint.textContent = "請填寫信箱與密碼"; return; }
   if (hint) hint.textContent = "登入中…";
-  const { error } = await _supabase.auth.signInWithPassword({ email, password });
-  if (error) {
-    if (hint) hint.textContent = "登入失敗：" + (error.message === "Invalid login credentials" ? "帳號或密碼錯誤" : error.message);
-  } else {
-    if (hint) hint.textContent = "";
-    showToast("歡迎回來！✨");
-    closeAuthModal();
-  }
+  try {
+    const resp = await fetch(`${API_BASE}/api/auth/login`, {
+      method: "POST", credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      if (hint) hint.textContent = "登入失敗：" + (data.error?.includes("Invalid") ? "帳號或密碼錯誤" : data.error);
+    } else {
+      appState.currentUser = data.user;
+      await syncFavoritesFromServer();
+      updateHeaderUser(data.user);
+      renderFeaturedRecipes();
+      if (hint) hint.textContent = "";
+      showToast("歡迎回來！✨");
+      closeAuthModal();
+    }
+  } catch (_) { if (hint) hint.textContent = "網路錯誤，請稍後再試"; }
 }
 
 async function handleRegister() {
-  if (!_supabase) { showToast("Supabase 尚未設定，請先填入 API key"); return; }
   const email    = document.getElementById("reg-email")?.value.trim();
   const password = document.getElementById("reg-password")?.value;
   const name     = document.getElementById("reg-name")?.value.trim();
@@ -3306,21 +3300,28 @@ async function handleRegister() {
   if (!email || !password) { if (hint) hint.textContent = "請填寫信箱與密碼"; return; }
   if (password.length < 6)  { if (hint) hint.textContent = "密碼至少 6 個字元"; return; }
   if (hint) hint.textContent = "建立帳號中…";
-  const { error } = await _supabase.auth.signUp({
-    email, password,
-    options: { data: { display_name: name || email.split("@")[0] } }
-  });
-  if (error) {
-    if (hint) hint.textContent = "註冊失敗：" + error.message;
-  } else {
-    if (hint) hint.textContent = "✅ 帳號已建立！請查看信箱點擊確認連結後即可登入。";
-    showToast("帳號建立成功！請確認信箱 📧");
-  }
+  try {
+    const resp = await fetch(`${API_BASE}/api/auth/register`, {
+      method: "POST", credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, name })
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      if (hint) hint.textContent = "註冊失敗：" + data.error;
+    } else {
+      if (hint) hint.textContent = "✅ 帳號已建立！請查看信箱點擊確認連結後即可登入。";
+      showToast("帳號建立成功！請確認信箱 📧");
+    }
+  } catch (_) { if (hint) hint.textContent = "網路錯誤，請稍後再試"; }
 }
 
 async function handleSignOut() {
-  if (!_supabase) return;
-  await _supabase.auth.signOut();
+  await fetch(`${API_BASE}/api/auth/logout`, { method: "POST", credentials: "include" });
+  appState.currentUser = null;
+  appState.userFavorites.clear();
+  updateHeaderUser(null);
+  renderFeaturedRecipes();
   closeAuthModal();
   showToast("已登出，下次見 👋");
 }
