@@ -3309,7 +3309,7 @@ function _carouselGoTo(idx) {
   clearInterval(_carouselTimer);
   _carouselTimer = setInterval(() => {
     _carouselGoTo((_carouselIdx + 1) % _carouselTotal);
-  }, 3500);
+  }, 2500);
 }
 
 // ==================== 19. ScrollTrigger & 微互動 ====================
