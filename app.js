@@ -1931,6 +1931,9 @@ document.addEventListener("DOMContentLoaded", () => {
   regenerateWeeklyPlanner();
   renderFeaturedRecipes();
   initSupabase();
+  setTimeout(animateHero, 80);
+  setTimeout(initParallax, 120);
+  initHeaderScroll();
 
   window.addEventListener("hashchange", handleHashRoute);
   handleHashRoute();
@@ -1977,6 +1980,12 @@ function switchView(viewName, updateHash = true) {
   if (targetView) {
     targetView.classList.add("active");
     appState.currentView = viewName;
+    if (typeof gsap !== "undefined") {
+      gsap.fromTo(targetView,
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out", clearProps: "all" }
+      );
+    }
   }
 
   const desktopNavItems = document.querySelectorAll(".desktop-nav .nav-item");
@@ -1987,9 +1996,8 @@ function switchView(viewName, updateHash = true) {
   window.scrollTo({ top: 0, behavior: "smooth" });
   if (updateHash) window.location.hash = viewName;
 
-  if (viewName === "commute") {
-    initCommuteView();
-  }
+  if (viewName === "commute") initCommuteView();
+  if (viewName === "home")    animateHero();
 }
 
 // ==================== 7. 首頁：精選食譜渲染（限 8 道）====================
@@ -2037,6 +2045,7 @@ function renderFeaturedRecipes() {
           loading="lazy"
           data-fallback="${getRecipeImageFallbackUrl(recipe)}"
           data-emoji="${recipe.imageFallback}"
+          onload="this.classList.add('img-loaded')"
           onerror="
             if(this.dataset.fallback && this.src !== this.dataset.fallback){
               this.src = this.dataset.fallback;
@@ -2066,6 +2075,18 @@ function renderFeaturedRecipes() {
       </div>
     </div>
   `).join('');
+
+  // 卡片依序飛入
+  if (typeof gsap !== "undefined") {
+    gsap.from(container.querySelectorAll(".recipe-card"), {
+      duration: 0.5,
+      y: 40,
+      opacity: 0,
+      stagger: 0.07,
+      ease: "power2.out",
+      clearProps: "all"
+    });
+  }
 }
 
 function triggerLazyFilter() {
@@ -3141,7 +3162,156 @@ function showToast(message) {
   setTimeout(() => toast.classList.remove("active"), 4500);
 }
 
-// ==================== 18. Auth & 收藏同步（透過後端 API，無前端 key）====================
+// ==================== 18. GSAP Hero 動畫 ====================
+function animateHero() {
+  if (typeof gsap === "undefined") return;
+
+  // 先重設狀態（回到首頁時重播）
+  gsap.set([".hero-tag", ".hero-content h1", ".hero-content > p", ".hero-actions", ".hero-badge-card", ".badge-item"], {
+    clearProps: "all"
+  });
+
+  const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+  tl.from(".hero-tag", {
+      duration: 0.6,
+      y: 24,
+      opacity: 0
+    })
+    .from(".hero-content h1", {
+      duration: 0.7,
+      y: 32,
+      opacity: 0
+    }, "-=0.35")
+    .from(".hero-content > p", {
+      duration: 0.6,
+      y: 20,
+      opacity: 0
+    }, "-=0.4")
+    .from(".hero-actions", {
+      duration: 0.5,
+      y: 16,
+      opacity: 0
+    }, "-=0.35")
+    .from(".hero-badge-card", {
+      duration: 0.7,
+      x: 48,
+      opacity: 0,
+      ease: "power2.out",
+      clearProps: "all"
+    }, "-=0.6")
+    .from(".badge-item", {
+      duration: 0.45,
+      y: 18,
+      opacity: 0,
+      stagger: 0.12,
+      clearProps: "all"
+    }, "-=0.4");
+}
+
+// ==================== 19. ScrollTrigger & 微互動 ====================
+
+function initParallax() {
+  if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  // ── 1. Hero 多層視差（核心 Apple 效果）───────────────────
+  // hero 文字往上飄，比滾動慢（製造深度感）
+  gsap.to(".hero-content", {
+    y: -80,
+    ease: "none",
+    scrollTrigger: {
+      trigger: ".hero-section",
+      start: "top top",
+      end: "bottom top",
+      scrub: 1.5
+    }
+  });
+
+  // badge card 移動更少 → 兩層不同速度 = 立體感
+  gsap.to(".hero-badge-card", {
+    y: -35,
+    ease: "none",
+    scrollTrigger: {
+      trigger: ".hero-section",
+      start: "top top",
+      end: "bottom top",
+      scrub: 1.5
+    }
+  });
+
+  // ── 2. Section title 文字縮放淡入（Apple 招牌）───────────
+  document.querySelectorAll(".section-title-wrap").forEach(el => {
+    gsap.fromTo(el.querySelector("h2") || el,
+      { scale: 0.88, opacity: 0 },
+      {
+        scale: 1,
+        opacity: 1,
+        ease: "none",
+        scrollTrigger: {
+          trigger: el,
+          start: "top 90%",
+          end: "top 55%",
+          scrub: 1
+        }
+      }
+    );
+  });
+
+  // ── 3. 功能卡片深度交錯滾入 ──────────────────────────────
+  ScrollTrigger.create({
+    trigger: ".features-grid",
+    start: "top 92%",
+    once: true,
+    onEnter: () => {
+      gsap.from(".feature-card", {
+        duration: 0.6,
+        y: 50,
+        opacity: 0,
+        stagger: 0.12,
+        ease: "power3.out",
+        clearProps: "all"
+      });
+    }
+  });
+
+  // ── 4. 食譜卡片圖片微視差（圖片比卡片移動慢）─────────────
+  // 在 renderFeaturedRecipes 後才有卡片，用 MutationObserver 監聽
+  const container = document.getElementById("featured-recipes-container");
+  if (container) {
+    const applyCardParallax = () => {
+      container.querySelectorAll(".recipe-img-holder img").forEach(img => {
+        // 避免重複設定
+        if (img.dataset.parallaxSet) return;
+        img.dataset.parallaxSet = "1";
+        gsap.to(img, {
+          y: -28,
+          ease: "none",
+          scrollTrigger: {
+            trigger: img.closest(".recipe-card"),
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true
+          }
+        });
+      });
+    };
+    applyCardParallax();
+    const obs = new MutationObserver(applyCardParallax);
+    obs.observe(container, { childList: true });
+  }
+}
+
+// Header 滾動陰影
+function initHeaderScroll() {
+  const header = document.querySelector(".app-header");
+  if (!header) return;
+  window.addEventListener("scroll", () => {
+    header.classList.toggle("header-scrolled", window.scrollY > 24);
+  }, { passive: true });
+}
+
+// ==================== 20. Auth & 收藏同步（透過後端 API，無前端 key）====================
 
 function initSupabase() {
   // 啟動時檢查是否已有登入 session（httpOnly cookie 由瀏覽器自動帶上）
@@ -3324,4 +3494,37 @@ async function handleSignOut() {
   renderFeaturedRecipes();
   closeAuthModal();
   showToast("已登出，下次見 👋");
+}
+
+// ==================== 21. 背景音樂播放器 ====================
+let _musicOn = false;
+
+function toggleMusic() {
+  const audio     = document.getElementById("bg-music");
+  const btn       = document.getElementById("music-btn");
+  const iconPlay  = document.querySelector(".music-icon-play");
+  const iconPause = document.querySelector(".music-icon-pause");
+  if (!audio) return;
+
+  _musicOn = !_musicOn;
+
+  if (_musicOn) {
+    audio.play().catch(() => {
+      _musicOn = false;
+      iconPlay.style.display  = "";
+      iconPause.style.display = "none";
+      btn.classList.remove("music-playing");
+      showToast("⚠️ 請先點擊頁面再開啟音樂");
+    });
+    iconPlay.style.display  = "none";
+    iconPause.style.display = "";
+    btn.classList.add("music-playing");
+    showToast("🎵 背景音樂已開啟");
+  } else {
+    audio.pause();
+    iconPlay.style.display  = "";
+    iconPause.style.display = "none";
+    btn.classList.remove("music-playing");
+    showToast("🔇 背景音樂已關閉");
+  }
 }

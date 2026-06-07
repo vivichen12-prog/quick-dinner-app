@@ -2828,6 +2828,141 @@ body {
 }
 
 /* ============================================================
+   浮動音樂播放器
+   ============================================================ */
+
+.music-player {
+  position: fixed;
+  bottom: 88px;   /* 手機底部 nav 上方 */
+  right: 18px;
+  z-index: 8000;
+}
+
+.music-btn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.14);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.music-btn:hover  { transform: scale(1.1); }
+.music-btn:active { transform: scale(0.93); }
+
+/* 播放中：呼吸光暈 */
+@keyframes music-breathe {
+  0%, 100% { box-shadow: 0 4px 18px rgba(232,141,103,0.25), 0 0 0 0 rgba(232,141,103,0.20); }
+  50%       { box-shadow: 0 4px 28px rgba(232,141,103,0.45), 0 0 0 12px rgba(232,141,103,0.06); }
+}
+.music-btn.music-playing {
+  background: linear-gradient(135deg, #FFF3ED, #fff);
+  animation: music-breathe 2.4s ease-in-out infinite;
+}
+
+/* 音符旋轉動畫（播放時）*/
+@keyframes note-spin {
+  from { transform: rotate(-8deg); }
+  to   { transform: rotate(8deg); }
+}
+.music-btn.music-playing .music-icon-pause {
+  display: inline-block;
+  animation: note-spin 0.8s ease-in-out infinite alternate;
+}
+
+@media (min-width: 768px) {
+  .music-player { bottom: 28px; }
+}
+
+/* ============================================================
+   呼吸燈 Breathing Glow
+   ============================================================ */
+
+/* Hero 主按鈕 — 溫暖橘色呼吸光暈 */
+@keyframes breathe-btn {
+  0%, 100% {
+    box-shadow: 0 4px 14px rgba(232, 141, 103, 0.25),
+                0 0 0 0   rgba(232, 141, 103, 0.15);
+  }
+  50% {
+    box-shadow: 0 6px 28px rgba(232, 141, 103, 0.50),
+                0 0 0 10px rgba(232, 141, 103, 0.06);
+  }
+}
+
+.btn-primary {
+  animation: breathe-btn 2.8s ease-in-out infinite;
+}
+/* 滑鼠移上時暫停，避免干擾 hover 樣式 */
+.btn-primary:hover,
+.btn-primary:active {
+  animation-play-state: paused;
+}
+
+/* Logo icon — 細緻品牌呼吸 */
+@keyframes breathe-logo {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(232, 141, 103, 0.20)); }
+  50%       { filter: drop-shadow(0 0 10px rgba(232, 141, 103, 0.55)); }
+}
+
+.logo-icon {
+  animation: breathe-logo 3.5s ease-in-out infinite;
+}
+
+/* 烹飪計時器時間標籤 — 提醒感呼吸 */
+@keyframes breathe-tag {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 163, 115, 0.30); }
+  50%       { box-shadow: 0 0 8px 3px rgba(212, 163, 115, 0.18); }
+}
+
+.recipe-time-tag {
+  animation: breathe-tag 3s ease-in-out infinite;
+}
+
+/* ============================================================
+   微互動 & 捲動效果
+   ============================================================ */
+
+/* 按鈕按下縮放 */
+.btn:active,
+.btn-cook:active,
+.feature-card:active,
+.mobile-nav-item:active,
+.nav-item:active {
+  transform: scale(0.96);
+  transition: transform 0.1s ease;
+}
+
+/* Header 捲動後出現陰影 */
+.app-header {
+  transition: box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+}
+.app-header.header-scrolled {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* 食譜圖片載入後平滑顯示 */
+.recipe-img-holder img {
+  opacity: 0;
+  transition: opacity 0.45s ease, transform 0.4s ease;
+}
+.recipe-img-holder img.img-loaded {
+  opacity: 1;
+}
+
+/* ============================================================
    Auth Modal & Heart Button
    ============================================================ */
 

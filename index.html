@@ -19,6 +19,9 @@
   <script>
     const API_BASE = '';  // 與後端同 origin，不需要填網址
   </script>
+  <!-- GSAP 動畫套件 -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 </head>
 <body>
 
@@ -468,6 +471,18 @@
   <!-- 提示浮窗 (Toast) -->
   <div class="toast" id="app-toast">這是一個提示訊息</div>
 
+  <!-- 浮動音樂播放器 -->
+  <div id="music-player" class="music-player" title="背景音樂">
+    <button class="music-btn" id="music-btn" onclick="toggleMusic()">
+      <span class="music-icon music-icon-play">🎵</span>
+      <span class="music-icon music-icon-pause" style="display:none">🔇</span>
+      <span class="music-ripple"></span>
+    </button>
+    <!-- HTML5 音樂播放器 -->
+    <audio id="bg-music" loop preload="none">
+      <source src="music.mp3" type="audio/mpeg">
+    </audio>
+  </div>
   <!-- ==================== 登入 / 會員中心 彈窗 ==================== -->
   <div id="auth-modal" class="auth-overlay" onclick="handleAuthOverlayClick(event)">
     <div class="auth-card">
