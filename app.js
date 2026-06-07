@@ -2070,7 +2070,7 @@ function renderFeaturedRecipes() {
         <p>${recipe.description}</p>
         <div class="recipe-card-meta">
           <span class="badge badge-green">${recipe.cuisine}</span>
-          <button class="btn-cook" onclick="initiateCooking('${recipe.id}')">極速烹飪 &rarr;</button>
+          <button class="btn-cook" onclick="initiateCooking('${recipe.id}', this)">極速烹飪 &rarr;</button>
         </div>
       </div>
     </div>
@@ -2222,7 +2222,7 @@ function runPantryMatching() {
     const rec = mr.recipe;
     const matchedText = mr.intersectNames.map(name => `<span class="highlight">${name}</span>`).join('、');
     return `
-      <div class="match-item" onclick="initiateCooking('${rec.id}')">
+      <div class="match-item" onclick="initiateCooking('${rec.id}', this)">
         <div class="match-img"><span>${rec.imageFallback}</span></div>
         <div class="match-content">
           <div class="match-title-wrap">
@@ -2232,7 +2232,7 @@ function runPantryMatching() {
           <p class="match-desc">${rec.description}</p>
           <div class="match-footer">
             <div class="match-ingredients-match">冰箱已含：${matchedText}</div>
-            <button class="btn-cook" onclick="event.stopPropagation(); initiateCooking('${rec.id}')">出餐 &rarr;</button>
+            <button class="btn-cook" onclick="event.stopPropagation(); initiateCooking('${rec.id}', this)">出餐 &rarr;</button>
           </div>
         </div>
       </div>`;
@@ -2292,7 +2292,7 @@ function renderWeeklyCalendar() {
             </p>
           </div>
           <div class="day-recipe-action">
-            <button class="btn-icon" title="極速烹飪此道" onclick="initiateCooking('${rec.id}')">
+            <button class="btn-icon" title="極速烹飪此道" onclick="initiateCooking('${rec.id}', this)">
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </button>
             <button class="btn-icon" title="單道一鍵採買" onclick="openSupermarketModal('single', '${rec.id}')">
@@ -2441,24 +2441,63 @@ function executeSupermarketCheckout() {
 }
 
 // ==================== 11. 並行烹飪助手引擎 ====================
-function initiateCooking(recipeId) {
+function initiateCooking(recipeId, triggerEl) {
   const recipe = RECIPES_DB.find(r => r.id === recipeId);
   if (!recipe) return;
 
-  clearInterval(appState.cookingTimerInterval);
-  appState.activeCookingRecipe = recipe;
-  appState.cookingTimeElapsed  = 0;
-  const t1 = recipe.parallelSteps.filter(s => s.threadId === 1).reduce((s, p) => s + p.duration, 0);
-  const t2 = recipe.parallelSteps.filter(s => s.threadId === 2).reduce((s, p) => s + p.duration, 0);
-  appState.cookingTimeTotal = Math.max(t1, t2, 900);
-  appState.isCookingTimerPaused    = true;
-  appState.currentCookingStepIndex = 0;
+  const _launch = () => {
+    clearInterval(appState.cookingTimerInterval);
+    appState.activeCookingRecipe = recipe;
+    appState.cookingTimeElapsed  = 0;
+    const t1 = recipe.parallelSteps.filter(s => s.threadId === 1).reduce((s, p) => s + p.duration, 0);
+    const t2 = recipe.parallelSteps.filter(s => s.threadId === 2).reduce((s, p) => s + p.duration, 0);
+    appState.cookingTimeTotal = Math.max(t1, t2, 900);
+    appState.isCookingTimerPaused    = true;
+    appState.currentCookingStepIndex = 0;
+    document.getElementById("nav-d-cooking").style.display = "block";
+    document.getElementById("nav-m-cooking").style.display = "flex";
+    switchView("cooking");
+    renderCookingInterface();
+  };
 
-  document.getElementById("nav-d-cooking").style.display = "block";
-  document.getElementById("nav-m-cooking").style.display = "flex";
+  if (triggerEl && typeof gsap !== "undefined") {
+    const card = triggerEl.closest(".recipe-card") || triggerEl.closest(".match-item") || triggerEl.closest(".day-plan-item");
+    const img  = card ? card.querySelector(".recipe-img-holder img.img-loaded, .recipe-img-holder img") : null;
 
-  switchView("cooking");
-  renderCookingInterface();
+    if (img) {
+      const rect   = img.getBoundingClientRect();
+      const clone  = img.cloneNode(true);
+      Object.assign(clone.style, {
+        position:     "fixed",
+        top:          rect.top  + "px",
+        left:         rect.left + "px",
+        width:        rect.width  + "px",
+        height:       rect.height + "px",
+        objectFit:    "cover",
+        borderRadius: "12px",
+        zIndex:       "9998",
+        pointerEvents:"none",
+        margin:       "0",
+        opacity:      "1"
+      });
+      document.body.appendChild(clone);
+
+      gsap.to(clone, {
+        top: 0, left: 0,
+        width: "100vw", height: "100vh",
+        borderRadius: "0px",
+        duration: 0.55,
+        ease: "power3.inOut",
+        onComplete: () => {
+          _launch();
+          gsap.to(clone, { opacity: 0, duration: 0.35, delay: 0.05, onComplete: () => clone.remove() });
+        }
+      });
+      return;
+    }
+  }
+
+  _launch();
 }
 
 function renderCookingInterface() {
