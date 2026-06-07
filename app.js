@@ -1933,6 +1933,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initSupabase();
   setTimeout(animateHero, 80);
   setTimeout(initParallax, 120);
+  setTimeout(initHeroCarousel, 150);
   initHeaderScroll();
 
   window.addEventListener("hashchange", handleHashRoute);
@@ -3206,7 +3207,7 @@ function animateHero() {
   if (typeof gsap === "undefined") return;
 
   // 先重設狀態（回到首頁時重播）
-  gsap.set([".hero-tag", ".hero-content h1", ".hero-content > p", ".hero-actions", ".hero-badge-card", ".badge-item"], {
+  gsap.set([".hero-tag", ".hero-content h1", ".hero-content > p", ".hero-actions", ".hero-badge-card"], {
     clearProps: "all"
   });
 
@@ -3238,14 +3239,77 @@ function animateHero() {
       opacity: 0,
       ease: "power2.out",
       clearProps: "all"
-    }, "-=0.6")
-    .from(".badge-item", {
-      duration: 0.45,
-      y: 18,
-      opacity: 0,
-      stagger: 0.12,
-      clearProps: "all"
-    }, "-=0.4");
+    }, "-=0.6");
+}
+
+// ==================== 18b. Hero 食譜輪播 ====================
+let _carouselTimer = null;
+let _carouselIdx   = 0;
+let _carouselTotal = 0;
+
+function initHeroCarousel() {
+  const track     = document.getElementById("hero-carousel");
+  const dotsWrap  = document.getElementById("carousel-dots");
+  if (!track || typeof RECIPES_DB === "undefined") return;
+
+  // 挑 6 道有圖片的食譜
+  const picks = RECIPES_DB.slice(0, 6);
+  _carouselTotal = picks.length;
+
+  picks.forEach((recipe, i) => {
+    const slide = document.createElement("div");
+    slide.className = "carousel-slide";
+    slide.dataset.index = i;
+
+    const imgUrl = getRecipeImageUrl(recipe);
+    slide.innerHTML = `
+      <div class="carousel-slide-emoji">${recipe.imageFallback}</div>
+      <img src="${imgUrl}" alt="${recipe.title}"
+           onload="this.style.opacity=1; this.previousElementSibling.style.display='none'"
+           onerror="this.style.display='none'"
+           style="opacity:0;transition:opacity 0.4s">
+      <div class="carousel-slide-info">
+        <h4>${recipe.title}</h4>
+        <span>⏱ ${recipe.totalTime} 分鐘</span>
+      </div>`;
+    slide.addEventListener("click", () => initiateCooking(recipe.id, slide));
+    track.appendChild(slide);
+
+    const dot = document.createElement("div");
+    dot.className = "carousel-dot";
+    dot.addEventListener("click", () => _carouselGoTo(i));
+    dotsWrap.appendChild(dot);
+  });
+
+  _carouselGoTo(0);
+}
+
+function _carouselGoTo(idx) {
+  if (typeof gsap === "undefined") return;
+  const slides = document.querySelectorAll(".carousel-slide");
+  const dots   = document.querySelectorAll(".carousel-dot");
+  if (!slides.length) return;
+
+  slides.forEach((s, i) => {
+    const depth = (i - idx + _carouselTotal) % _carouselTotal;
+    if (depth === 0) {
+      gsap.to(s, { scale: 1,    y: 0,  opacity: 1,   zIndex: 3, duration: 0.55, ease: "power2.out" });
+    } else if (depth === 1) {
+      gsap.to(s, { scale: 0.93, y: 10, opacity: 0.65, zIndex: 2, duration: 0.55, ease: "power2.out" });
+    } else if (depth === 2) {
+      gsap.to(s, { scale: 0.86, y: 20, opacity: 0.35, zIndex: 1, duration: 0.55, ease: "power2.out" });
+    } else {
+      gsap.set(s, { scale: 0.8, y: 28, opacity: 0, zIndex: 0 });
+    }
+  });
+
+  dots.forEach((d, i) => d.classList.toggle("active", i === idx));
+  _carouselIdx = idx;
+
+  clearInterval(_carouselTimer);
+  _carouselTimer = setInterval(() => {
+    _carouselGoTo((_carouselIdx + 1) % _carouselTotal);
+  }, 3500);
 }
 
 // ==================== 19. ScrollTrigger & 微互動 ====================
