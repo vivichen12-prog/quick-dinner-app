@@ -117,7 +117,7 @@
         </div>
 
         <!-- 卡片 3: 並行烹飪助手 -->
-        <div class="feature-card" onclick="switchView('recipes')">
+        <div class="feature-card" onclick="switchView('home'); setTimeout(()=>document.getElementById('recipes-section')?.scrollIntoView({behavior:'smooth'}),300)">
           <div class="feature-icon-wrapper f-gold">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"/>
@@ -131,7 +131,7 @@
       </div>
 
       <!-- 精選食譜推薦 -->
-      <div class="section-title-wrap">
+      <div class="section-title-wrap" id="recipes-section">
         <h2>熱門多國極速食譜</h2>
         <p>深受職業媽媽喜愛的週間高回饋料理，兼顧營養與驚人速度</p>
       </div>
