@@ -869,6 +869,36 @@ body {
   font-weight: 700;
 }
 
+/* 自選食材 wrap + 刪除按鈕 */
+.chip-custom-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.chip-remove-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  color: #fff;
+  border: none;
+  font-size: 0.6rem;
+  line-height: 16px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+  display: none;
+  z-index: 1;
+}
+
+.chip-custom-wrap:hover .chip-remove-btn {
+  display: block;
+}
+
 /* 手動新增食材 */
 .pantry-manual-input {
   display: flex;

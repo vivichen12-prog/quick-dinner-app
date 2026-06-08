@@ -2158,19 +2158,36 @@ function addManualIngredient() {
   const inputEl = document.getElementById("manual-ingredient-input");
   const value = inputEl.value.trim();
   if (!value) return;
+
   const customId = `ing-custom-${Date.now()}`;
-  const container = document.getElementById("chips-pantry");
+  const section  = document.getElementById("custom-ingredient-section");
+  const container = document.getElementById("chips-custom");
+
+  if (section)  section.style.display = "";
   container.insertAdjacentHTML("beforeend", `
-    <button class="chip selected" data-id="${customId}" onclick="toggleIngredient('${customId}')">
-      <span>🍲</span>
-      <span>${value}</span>
-      <span class="chip-check">&check;</span>
-    </button>
+    <span class="chip-custom-wrap">
+      <button class="chip selected" data-id="${customId}" onclick="toggleIngredient('${customId}')">
+        <span>✏️</span>
+        <span>${value}</span>
+        <span class="chip-check">&check;</span>
+      </button>
+      <button class="chip-remove-btn" onclick="removeCustomIngredient('${customId}')" title="刪除">✕</button>
+    </span>
   `);
   appState.selectedIngredients.add(customId);
   inputEl.value = "";
   runPantryMatching();
-  showToast(`🥬 已新增冰箱食材：${value}！`);
+  showToast(`✏️ 已新增自選食材：${value}`);
+}
+
+function removeCustomIngredient(customId) {
+  const wrap = document.querySelector(`.chip-custom-wrap:has([data-id="${customId}"])`);
+  if (wrap) wrap.remove();
+  appState.selectedIngredients.delete(customId);
+  const section = document.getElementById("custom-ingredient-section");
+  const container = document.getElementById("chips-custom");
+  if (section && container && container.children.length === 0) section.style.display = "none";
+  runPantryMatching();
 }
 
 // 允許 Enter 鍵新增食材
