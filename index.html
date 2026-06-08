@@ -22,6 +22,9 @@
   <!-- GSAP 動畫套件 -->
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/TextPlugin.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/Flip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/Draggable.min.js"></script>
 </head>
 <body>
 
@@ -63,7 +66,7 @@
       <div class="hero-section">
         <div class="hero-content">
           <span class="hero-tag">舒壓出餐・手作溫度</span>
-          <h1>下班後 15 分鐘<br><span class="highlight-text">給全家最溫馨的美味</span></h1>
+          <h1><span id="hero-title-line1"></span><br><span class="highlight-text" id="hero-title-line2" style="opacity:0">給全家最溫馨的美味</span></h1>
           <p>專為忙碌職業婦女打造的並行烹飪引擎，消除今晚吃什麼的決策疲勞，一鍵採買，極速出餐。</p>
           <div class="hero-actions">
             <button class="btn btn-primary" onclick="switchView('pantry')">

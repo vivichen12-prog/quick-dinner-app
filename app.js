@@ -2022,7 +2022,27 @@ function setCuisineFilter(label) {
   document.querySelectorAll(".cuisine-tab").forEach(btn =>
     btn.classList.toggle("active", btn.dataset.cuisine === label)
   );
-  renderFeaturedRecipes();
+
+  if (typeof Flip !== "undefined" && typeof gsap !== "undefined") {
+    const container = document.getElementById("featured-recipes-container");
+    const oldCards  = container ? gsap.utils.toArray(".recipe-card", container) : [];
+    const state     = oldCards.length ? Flip.getState(oldCards) : null;
+
+    renderFeaturedRecipes();
+
+    if (state) {
+      Flip.from(state, {
+        duration: 0.45,
+        ease: "power2.inOut",
+        stagger: 0.03,
+        absolute: true,
+        onEnter: els => gsap.fromTo(els, { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.4)" }),
+        onLeave: els => gsap.to(els,      { opacity: 0, scale: 0.85, duration: 0.25 })
+      });
+    }
+  } else {
+    renderFeaturedRecipes();
+  }
 }
 
 function renderFeaturedRecipes() {
@@ -2038,7 +2058,7 @@ function renderFeaturedRecipes() {
   container.innerHTML = list.length === 0
     ? `<div class="empty-state"><div class="empty-icon">🍽️</div><h4>此分類暫無食譜</h4></div>`
     : list.map(recipe => `
-    <div class="recipe-card">
+    <div class="recipe-card" data-flip-id="${recipe.id}">
       <div class="recipe-img-holder">
         <img
           src="${getRecipeImageUrl(recipe)}"
@@ -2683,7 +2703,17 @@ function updateCookingTimerUI() {
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
-  timeNumbers.innerText = formatTime(secondsRemaining);
+  const newTime = formatTime(secondsRemaining);
+  if (timeNumbers.innerText !== newTime) {
+    if (typeof gsap !== "undefined") {
+      gsap.timeline()
+        .to(timeNumbers,  { y: 6, opacity: 0, duration: 0.12, ease: "power1.in" })
+        .call(() => { timeNumbers.innerText = newTime; })
+        .fromTo(timeNumbers, { y: -6, opacity: 0 }, { y: 0, opacity: 1, duration: 0.15, ease: "power1.out" });
+    } else {
+      timeNumbers.innerText = newTime;
+    }
+  }
   if (timelineDisplay) timelineDisplay.innerText = `${formatTime(appState.cookingTimeElapsed)} / ${formatTime(appState.cookingTimeTotal)}`;
 
   if (progressRing) {
@@ -3205,41 +3235,33 @@ function showToast(message) {
 // ==================== 18. GSAP Hero 動畫 ====================
 function animateHero() {
   if (typeof gsap === "undefined") return;
+  if (typeof TextPlugin !== "undefined") gsap.registerPlugin(TextPlugin);
+  if (typeof Flip       !== "undefined") gsap.registerPlugin(Flip);
+  if (typeof Draggable  !== "undefined") gsap.registerPlugin(Draggable);
 
-  // 先重設狀態（回到首頁時重播）
-  gsap.set([".hero-tag", ".hero-content h1", ".hero-content > p", ".hero-actions", ".hero-badge-card"], {
-    clearProps: "all"
-  });
+  // 先重設狀態
+  const line1 = document.getElementById("hero-title-line1");
+  const line2 = document.getElementById("hero-title-line2");
+  if (line1) line1.textContent = "";
+  if (line2) gsap.set(line2, { opacity: 0, y: 12 });
+
+  gsap.set([".hero-tag", ".hero-content > p", ".hero-actions", ".hero-badge-card"], { clearProps: "all" });
 
   const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-  tl.from(".hero-tag", {
-      duration: 0.6,
-      y: 24,
-      opacity: 0
-    })
-    .from(".hero-content h1", {
-      duration: 0.7,
-      y: 32,
-      opacity: 0
-    }, "-=0.35")
-    .from(".hero-content > p", {
-      duration: 0.6,
-      y: 20,
-      opacity: 0
-    }, "-=0.4")
-    .from(".hero-actions", {
-      duration: 0.5,
-      y: 16,
-      opacity: 0
-    }, "-=0.35")
-    .from(".hero-badge-card", {
-      duration: 0.7,
-      x: 48,
-      opacity: 0,
-      ease: "power2.out",
-      clearProps: "all"
-    }, "-=0.6");
+  tl.from(".hero-tag", { duration: 0.5, y: 20, opacity: 0 });
+
+  // A. TextPlugin 打字機效果
+  if (line1 && typeof TextPlugin !== "undefined") {
+    tl.to(line1, { duration: 0.9, text: { value: "下班後 15 分鐘", delimiter: "" }, ease: "none" }, "-=0.1")
+      .to(line2, { duration: 0.5, opacity: 1, y: 0 }, "-=0.1");
+  } else {
+    tl.from(".hero-content h1", { duration: 0.7, y: 32, opacity: 0 }, "-=0.2");
+  }
+
+  tl.from(".hero-content > p", { duration: 0.6, y: 20, opacity: 0 }, "-=0.3")
+    .from(".hero-actions",       { duration: 0.5, y: 16, opacity: 0 }, "-=0.35")
+    .from(".hero-badge-card",    { duration: 0.7, x: 48, opacity: 0, ease: "power2.out", clearProps: "all" }, "-=0.5");
 }
 
 // ==================== 18b. Hero 食譜輪播 ====================
@@ -3282,6 +3304,21 @@ function initHeroCarousel() {
   });
 
   _carouselGoTo(0);
+
+  // C. Draggable 手勢左右滑動
+  if (typeof Draggable !== "undefined") {
+    Draggable.create(track, {
+      type: "x",
+      edgeResistance: 0.85,
+      throwProps: false,
+      onDragEnd: function () {
+        const dx = this.endX - this.startX;
+        if (dx < -40)      _carouselGoTo((_carouselIdx + 1) % _carouselTotal);
+        else if (dx > 40)  _carouselGoTo((_carouselIdx - 1 + _carouselTotal) % _carouselTotal);
+        gsap.to(track, { x: 0, duration: 0.3, ease: "power2.out" });
+      }
+    });
+  }
 }
 
 function _carouselGoTo(idx) {
