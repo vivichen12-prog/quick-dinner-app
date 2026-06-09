@@ -1927,7 +1927,8 @@ let appState = {
   commuteOwnedItems: new Set(),
   // 登入會員
   currentUser: null,
-  userFavorites: new Set()
+  userFavorites: new Set(),
+  weeklyGroceryItems: []
 };
 
 // ==================== 5. 初始化 ====================
@@ -2428,6 +2429,7 @@ function compileWeeklyGroceryList() {
   });
 
   const list = Object.values(combined);
+  appState.weeklyGroceryItems = list;
   countBadge.innerText = `${list.length} 項食材`;
 
   const total = list.reduce((sum, item) => sum + (appState.selectedSupermarket === "px" ? item.pxPrice : item.carrefourPrice), 0);
@@ -2466,6 +2468,20 @@ function toggleGroceryCheck(idx) {
   const checkbox = document.getElementById(`g-check-${idx}`);
   const label    = document.getElementById(`g-label-${idx}`);
   if (checkbox && label) label.classList.toggle("checked-text", checkbox.checked);
+
+  // 重新計算未勾選項目的總價
+  const totalPriceEl = document.getElementById("cart-total-price");
+  const items = appState.weeklyGroceryItems || [];
+  if (!totalPriceEl || !items.length) return;
+
+  let total = 0;
+  items.forEach((item, i) => {
+    const cb = document.getElementById(`g-check-${i}`);
+    if (!cb || !cb.checked) {
+      total += appState.selectedSupermarket === "px" ? item.pxPrice : item.carrefourPrice;
+    }
+  });
+  totalPriceEl.innerText = `NT$ ${total}`;
 }
 
 // ==================== 10. 一鍵採買超市購物車（含 Demo 標示）====================
