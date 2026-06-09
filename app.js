@@ -2335,6 +2335,9 @@ function renderWeeklyCalendar() {
             </p>
           </div>
           <div class="day-recipe-action">
+            <button class="btn-icon" title="更換食譜" onclick="openRecipePicker(${idx})">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
             <button class="btn-icon" title="極速烹飪此道" onclick="initiateCooking('${rec.id}', this)">
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </button>
@@ -2345,6 +2348,63 @@ function renderWeeklyCalendar() {
         </div>
       </div>`;
   }).join('');
+}
+
+// ==================== 週菜單食譜選擇器 ====================
+let _pickerDayIdx = null;
+
+function openRecipePicker(dayIdx) {
+  _pickerDayIdx = dayIdx;
+  const dayNames = ["週一", "週二", "週三", "週四", "週五"];
+  const label = document.getElementById("picker-day-label");
+  const searchInput = document.getElementById("picker-search");
+  const modal = document.getElementById("recipe-picker-modal");
+  if (!modal) return;
+  if (label) label.textContent = `為 ${dayNames[dayIdx]} 選擇食譜`;
+  if (searchInput) searchInput.value = "";
+  filterPickerRecipes("");
+  modal.classList.add("active");
+}
+
+function closeRecipePicker() {
+  const modal = document.getElementById("recipe-picker-modal");
+  if (modal) modal.classList.remove("active");
+  _pickerDayIdx = null;
+}
+
+function handlePickerOverlayClick(e) {
+  if (e.target.id === "recipe-picker-modal") closeRecipePicker();
+}
+
+function filterPickerRecipes(query) {
+  const list = document.getElementById("picker-recipe-list");
+  if (!list) return;
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? RECIPES_DB.filter(r => r.title.includes(query) || r.cuisine.toLowerCase().includes(q) || r.tags.some(t => t.includes(query)))
+    : RECIPES_DB;
+
+  list.innerHTML = filtered.map(r => `
+    <div class="picker-item" onclick="selectRecipeForDay('${r.id}')">
+      <div class="picker-item-emoji">${r.imageFallback}</div>
+      <div class="picker-item-info">
+        <strong>${r.title}</strong>
+        <span>⏱ ${r.totalTime} 分鐘 · ${r.cuisine}</span>
+      </div>
+      <div class="picker-item-tags">${r.tags.slice(0,2).map(t=>`<span class="badge badge-gold">${t}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+function selectRecipeForDay(recipeId) {
+  if (_pickerDayIdx === null) return;
+  const recipe = RECIPES_DB.find(r => r.id === recipeId);
+  if (!recipe) return;
+  appState.weeklyPlannerRecipes[_pickerDayIdx] = recipe;
+  renderWeeklyCalendar();
+  compileWeeklyGroceryList();
+  closeRecipePicker();
+  const dayNames = ["週一", "週二", "週三", "週四", "週五"];
+  showToast(`✅ ${dayNames[_pickerDayIdx]} 已更換為「${recipe.title}」`);
 }
 
 function compileWeeklyGroceryList() {

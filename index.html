@@ -411,6 +411,17 @@
     </button>
   </nav>
 
+  <!-- ==================== 食譜選擇器 (Modal) ==================== -->
+  <div class="modal-overlay" id="recipe-picker-modal" onclick="handlePickerOverlayClick(event)">
+    <div class="modal-card recipe-picker-card">
+      <button class="modal-close" onclick="closeRecipePicker()">&times;</button>
+      <h3 class="modal-title">選擇食譜</h3>
+      <p class="modal-subtitle" id="picker-day-label"></p>
+      <input type="text" id="picker-search" class="picker-search-input" placeholder="搜尋食譜名稱或料理風格..." oninput="filterPickerRecipes(this.value)">
+      <div class="picker-recipe-list" id="picker-recipe-list"></div>
+    </div>
+  </div>
+
   <!-- ==================== 一鍵採買 超市購物車彈窗 (Modal) ==================== -->
   <div class="modal-overlay" id="supermarket-modal">
     <div class="modal-card">
