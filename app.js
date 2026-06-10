@@ -3513,42 +3513,6 @@ function initParallax() {
     }
   });
 
-  // ── 3b. 四步驟絲滑時間軸 ────────────────────────────────────
-  const tlFill = document.getElementById("timeline-fill");
-  const tlContainer = document.querySelector(".timeline-container");
-  if (tlFill && tlContainer) {
-    // 垂直線隨滾動生長
-    gsap.to(tlFill, {
-      height: "100%",
-      ease: "none",
-      scrollTrigger: {
-        trigger: tlContainer,
-        start: "top 75%",
-        end: "bottom 60%",
-        scrub: 1.5
-      }
-    });
-
-    // 每個步驟卡片依序飛入
-    document.querySelectorAll(".timeline-step").forEach((step, i) => {
-      const isLeft = step.classList.contains("tl-left");
-      ScrollTrigger.create({
-        trigger: step,
-        start: "top 82%",
-        once: true,
-        onEnter: () => gsap.to(step, {
-          opacity: 1,
-          x: 0,
-          duration: 0.6,
-          ease: "power3.out",
-          delay: 0.05
-        })
-      });
-      // 初始偏移方向
-      gsap.set(step, { opacity: 0, x: isLeft ? -50 : 50 });
-    });
-  }
-
   // ── 4. 食譜卡片圖片微視差（圖片比卡片移動慢）─────────────
   // 在 renderFeaturedRecipes 後才有卡片，用 MutationObserver 監聽
   const container = document.getElementById("featured-recipes-container");
