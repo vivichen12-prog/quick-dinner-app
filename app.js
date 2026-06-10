@@ -1940,7 +1940,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(animateHero, 80);
   setTimeout(initParallax, 120);
   setTimeout(initHeroCarousel, 150);
-  setTimeout(initPinShowcase, 180);
   initHeaderScroll();
 
   window.addEventListener("hashchange", handleHashRoute);
@@ -3361,51 +3360,6 @@ function animateHero() {
   tl.from(".hero-content > p", { duration: 0.6, y: 20, opacity: 0 }, "-=0.3")
     .from(".hero-actions",       { duration: 0.5, y: 16, opacity: 0 }, "-=0.35")
     .from(".hero-badge-card",    { duration: 0.7, x: 48, opacity: 0, ease: "power2.out", clearProps: "all" }, "-=0.5");
-}
-
-// ==================== 18a. Pin Showcase 滾動展示 ====================
-function initPinShowcase() {
-  const section = document.getElementById("pin-showcase");
-  if (!section || typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") return;
-
-  const steps   = gsap.utils.toArray(".pin-step",   section);
-  const visuals = gsap.utils.toArray(".pin-visual",  section);
-  const dots    = gsap.utils.toArray(".pin-dot",     section);
-  const total   = steps.length;
-
-  // 初始狀態：只顯示第一步
-  steps.forEach((s, i) => {
-    s.classList.toggle("active", i === 0);
-    gsap.set(s, { opacity: i === 0 ? 1 : 0, y: i === 0 ? 0 : 40 });
-  });
-  visuals.forEach((v, i) => {
-    v.classList.toggle("active", i === 0);
-    gsap.set(v, { opacity: i === 0 ? 1 : 0, scale: i === 0 ? 1 : 0.9 });
-  });
-
-  const tl = gsap.timeline();
-
-  for (let i = 0; i < total - 1; i++) {
-    tl.to(steps[i],   { opacity: 0, y: -40, duration: 1 })
-      .to(visuals[i], { opacity: 0, scale: 0.9, duration: 1 }, "<")
-      .fromTo(steps[i+1],   { opacity: 0, y: 40  }, { opacity: 1, y: 0,   duration: 1 })
-      .fromTo(visuals[i+1], { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 1 }, "<");
-  }
-
-  ScrollTrigger.create({
-    trigger: section,
-    pin: true,
-    start: "top top",
-    end: `+=${window.innerHeight * (total - 1) * 1.1}`,
-    scrub: 1.2,
-    animation: tl,
-    onUpdate: self => {
-      const activeIdx = Math.min(Math.floor(self.progress * total), total - 1);
-      dots.forEach((d, i) => d.classList.toggle("active", i === activeIdx));
-      steps.forEach((s, i) => s.classList.toggle("active", i === activeIdx));
-      visuals.forEach((v, i) => v.classList.toggle("active", i === activeIdx));
-    }
-  });
 }
 
 // ==================== 18b. Hero 食譜輪播 ====================

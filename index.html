@@ -84,108 +84,51 @@
         </div>
       </div>
 
-      <!-- Pin Showcase：三大功能滾動展示 -->
-      <section class="pin-showcase" id="pin-showcase">
-        <div class="pin-showcase-inner">
+      <!-- 核心功能入口 Hub -->
+      <div class="section-title-wrap">
+        <h2>今晚，您想如何出餐？</h2>
+        <p>點選下方功能，開啟您的極速廚房助手</p>
+      </div>
 
-          <!-- 左：文字區（三步驟疊放） -->
-          <div class="pin-text-panel">
-            <div class="pin-step-label">今晚，您想如何出餐？</div>
-
-            <div class="pin-step active" data-idx="0">
-              <div class="pin-step-num">01</div>
-              <h3>智慧冰箱配對</h3>
-              <p>輸入冰箱剩餘的蔬菜或肉類，AI 自動為您拼湊出 15 分鐘極速食譜，拒絕食材浪費。</p>
-              <button class="btn btn-primary pin-cta" onclick="switchView('pantry')">立即匹配 →</button>
-            </div>
-
-            <div class="pin-step" data-idx="1">
-              <div class="pin-step-num">02</div>
-              <h3>一鍵週菜單與採買</h3>
-              <p>自動規劃週間五天的晚餐，一鍵將採買清單送進全聯／家樂福購物車。</p>
-              <button class="btn btn-primary pin-cta" onclick="switchView('planner')">規劃週菜單 →</button>
-            </div>
-
-            <div class="pin-step" data-idx="2">
-              <div class="pin-step-num">03</div>
-              <h3>並行烹飪助手</h3>
-              <p>同步掌控多道步驟，讓備料、炒菜、燉湯同時進行，下班後 15 分鐘極速出餐。</p>
-              <button class="btn btn-primary pin-cta" onclick="switchView('home'); setTimeout(()=>document.getElementById('recipes-section')?.scrollIntoView({behavior:'smooth'}),300)">選食譜開始烹飪 →</button>
-            </div>
+      <div class="features-grid">
+        <div class="feature-card" onclick="switchView('pantry')">
+          <div class="feature-icon-wrapper f-orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              <path d="M2 12h20"/>
+            </svg>
           </div>
-
-          <!-- 右：視覺 mockup -->
-          <div class="pin-visual-panel">
-
-            <div class="pin-visual active" data-idx="0">
-              <div class="mock-card mock-pantry">
-                <div class="mock-chips-row">
-                  <span class="mock-chip">🥦 高麗菜</span>
-                  <span class="mock-chip sel">🍗 雞腿</span>
-                  <span class="mock-chip sel">🧅 洋蔥</span>
-                  <span class="mock-chip">🥚 雞蛋</span>
-                </div>
-                <div class="mock-divider">↓ AI 配對中</div>
-                <div class="mock-result-row">
-                  <span class="mock-recipe-emoji">🍗</span>
-                  <div>
-                    <div class="mock-recipe-title">蔥爆雞腿飯</div>
-                    <span class="mock-match-badge">100% 食材吻合</span>
-                  </div>
-                </div>
-                <div class="mock-result-row">
-                  <span class="mock-recipe-emoji">🫕</span>
-                  <div>
-                    <div class="mock-recipe-title">洋蔥雞丁炒飯</div>
-                    <span class="mock-match-badge">100% 食材吻合</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="pin-visual" data-idx="1">
-              <div class="mock-card mock-planner">
-                <div class="mock-cal-header">📅 本週菜單</div>
-                <div class="mock-cal-row"><span class="mock-day">週一</span><span>🥩 蜂蜜芥末烤雞腿</span></div>
-                <div class="mock-cal-row"><span class="mock-day">週二</span><span>🍝 番茄羅勒義大利麵</span></div>
-                <div class="mock-cal-row"><span class="mock-day">週三</span><span>🫕 韓式泡菜年糕鍋</span></div>
-                <div class="mock-cal-row"><span class="mock-day">週四</span><span>🍳 台式蒸蛋</span></div>
-                <div class="mock-cal-row"><span class="mock-day">週五</span><span>🍜 韓式石鍋拌飯</span></div>
-                <div class="mock-cart-tag">🛒 已整合採買清單 NT$ 680</div>
-              </div>
-            </div>
-
-            <div class="pin-visual" data-idx="2">
-              <div class="mock-card mock-cooking">
-                <div class="mock-timer-display">14:32</div>
-                <div class="mock-timer-label">剩餘烹飪時間</div>
-                <div class="mock-tracks">
-                  <div class="mock-track">
-                    <span>🔥 熱鍋爆香</span>
-                    <div class="mock-bar-wrap"><div class="mock-bar" style="width:80%"></div></div>
-                  </div>
-                  <div class="mock-track">
-                    <span>🥄 備醬料</span>
-                    <div class="mock-bar-wrap"><div class="mock-bar" style="width:55%"></div></div>
-                  </div>
-                  <div class="mock-track">
-                    <span>🍚 悶白飯</span>
-                    <div class="mock-bar-wrap"><div class="mock-bar" style="width:35%"></div></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
+          <h3>智慧冰箱配對</h3>
+          <p>輸入冰箱剩餘的蔬菜或肉類，AI 自動為您拼湊出 15 分鐘極速食譜，拒絕食材浪費。</p>
+          <div class="feature-link">立即匹配 &rarr;</div>
         </div>
 
-        <!-- 進度點 -->
-        <div class="pin-dots">
-          <div class="pin-dot active"></div>
-          <div class="pin-dot"></div>
-          <div class="pin-dot"></div>
+        <div class="feature-card" onclick="switchView('planner')">
+          <div class="feature-icon-wrapper f-green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <h3>一鍵週菜單與採買</h3>
+          <p>自動規劃週間五天的晚餐，一鍵將去重加總後的採買清單送進全聯/家樂福購物車。</p>
+          <div class="feature-link">規劃週菜單 &rarr;</div>
         </div>
-      </section>
+
+        <div class="feature-card" onclick="switchView('home'); setTimeout(()=>document.getElementById('recipes-section')?.scrollIntoView({behavior:'smooth'}),300)">
+          <div class="feature-icon-wrapper f-gold">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <h3>並行烹飪助手</h3>
+          <p>同步掌控多道步驟，讓備料、炒菜、燉湯同時進行，下班後 15 分鐘極速出餐。</p>
+          <div class="feature-link">選食譜開始烹飪 &rarr;</div>
+        </div>
+      </div>
 
       <!-- 精選食譜推薦 -->
       <div class="section-title-wrap" id="recipes-section">
