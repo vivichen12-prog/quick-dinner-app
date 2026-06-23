@@ -4,14 +4,14 @@
 
 /* 1. 設計系統變數定義 */
 :root {
-  /* 品牌核心色彩 */
+  /* 品牌核心色彩 — 溫馨蜜桃橘 */
   --primary-peach: #E88D67;          /* 溫馨蜜桃橘 - 主色 */
   --primary-peach-light: #FDF1EB;    /* 淺蜜桃 - 背景與卡片 */
   --primary-peach-hover: #D77651;
   --secondary-sage: #8FAB8A;         /* 療癒鼠尾草綠 - 輔助色 */
   --secondary-sage-light: #F0F5EF;   /* 淺鼠尾草 - 標籤與成功狀態 */
   --secondary-sage-hover: #7E9B79;
-  
+
   /* 功能與文字色系 */
   --background-warm: #FAF8F5;        /* 舒壓柔暖米白 - 大背景 */
   --surface-white: #FFFFFF;          /* 純白面 */
@@ -20,13 +20,13 @@
   --accent-gold: #D4A373;            /* 奢華金 - 重點、電器 */
   --accent-gold-light: #FAF2E8;
   --border-light: #ECE8E2;           /* 柔和邊框 */
-  
+
   /* 圓角半徑 */
   --radius-sm: 8px;
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-round: 50%;
-  
+
   /* 精緻陰影 */
   --shadow-sm: 0 4px 12px rgba(44, 53, 49, 0.03);
   --shadow-md: 0 12px 32px rgba(44, 53, 49, 0.06);
@@ -359,10 +359,10 @@ body {
 /* 情境 Banner */
 .hero-section {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  align-items: center;
-  gap: 32px;
-  background: linear-gradient(135deg, #FDF7F2 0%, #F5FBF6 100%);
+  grid-template-columns: 0.72fr 1.28fr;
+  align-items: stretch;
+  gap: 16px;
+  background: linear-gradient(135deg, #FDF7F2 0%, #FFF5EF 100%);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   padding: 48px;
@@ -385,6 +385,9 @@ body {
 .hero-content {
   position: relative;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .hero-tag {
@@ -424,28 +427,31 @@ body {
   gap: 16px;
 }
 
-/* 右側食譜輪播 */
+/* 右側食譜輪播 — 貼邊放大 */
 .hero-badge-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  align-items: center;
+  align-items: stretch;
+  position: relative;
+  margin: -48px -48px -48px 0;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  overflow: hidden;
 }
 
 .hero-carousel {
   position: relative;
   width: 100%;
-  height: 340px;
+  flex: 1;
+  min-height: 380px;
 }
 
 .carousel-slide {
   position: absolute;
   inset: 0;
-  border-radius: 20px;
+  border-radius: 0;
   overflow: hidden;
   cursor: pointer;
   transform-origin: bottom center;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
 }
 
 .carousel-slide img {
@@ -492,8 +498,11 @@ body {
   display: flex;
   gap: 6px;
   justify-content: center;
-  position: relative;
-  z-index: 10;
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  z-index: 20;
 }
 
 .carousel-dot {
@@ -509,6 +518,70 @@ body {
   width: 20px;
   border-radius: 3px;
   background: var(--primary-orange);
+}
+
+/* ── Hero 煮飯動畫 ── */
+.hero-cooking-wrap {
+  display: flex;
+  justify-content: flex-start;
+  margin: 18px 0 20px;
+}
+
+.hero-cooking-svg {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  overflow: visible;
+  animation: heroBob 5s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes heroBob {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-7px); }
+}
+
+/* 蒸氣 */
+.hero-steam {
+  animation: heroSteamRise 2.5s ease-in-out infinite;
+  animation-delay: var(--sd, 0s);
+}
+@keyframes heroSteamRise {
+  0%   { opacity: 0;   transform: translateY(5px); }
+  20%  { opacity: 0.85; }
+  80%  { opacity: 0.3; }
+  100% { opacity: 0;   transform: translateY(-22px) scaleX(1.4); }
+}
+
+/* 漂浮食材 */
+.hero-float {
+  animation: heroFloat 3.8s ease-in-out infinite;
+  animation-delay: var(--fd, 0s);
+}
+@keyframes heroFloat {
+  0%, 100% { transform: translate(0, 0) rotate(-3deg); }
+  50%       { transform: translate(var(--fx, 6px), var(--fy, -10px)) rotate(5deg); }
+}
+
+/* 拿鍋手臂上下晃動 */
+.hero-arm-stir {
+  animation: heroArmStir 1.6s ease-in-out infinite;
+  transform-origin: 181px 85px;
+}
+@keyframes heroArmStir {
+  0%, 100% { transform: rotate(0deg) translateY(0px); }
+  40%       { transform: rotate(-7deg) translateY(-3px); }
+  70%       { transform: rotate(4deg) translateY(2px); }
+}
+
+/* 閃亮星星 */
+.hero-sparkle {
+  animation: heroSparkle 2.2s ease-in-out infinite;
+  animation-delay: var(--sd, 0s);
+}
+@keyframes heroSparkle {
+  0%, 100% { opacity: 0;   transform: scale(0.3) rotate(0deg); }
+  50%       { opacity: 1;   transform: scale(1.15) rotate(20deg); }
 }
 
 /* 核心功能入口 Hub */
@@ -3369,5 +3442,4 @@ body {
 
 @media (max-width: 440px) {
   .auth-card { padding: 28px 20px 22px; }
-}
 }

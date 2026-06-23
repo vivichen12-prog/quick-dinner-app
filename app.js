@@ -3012,35 +3012,54 @@ const CUISINE_PHOTO_POOLS = {
 
 // 特定食譜 ID 直接對應圖片（更精準，優先級高於 cuisine 分組）
 const RECIPE_PHOTO_OVERRIDES = {
-  "rec-sukiyaki":     "1569050467447-ce54b3bbc37d", // 壽喜燒丼
-  "rec-onepotpasta":  "1551183053-bf91798d047f",    // 番茄義大利麵
-  "rec-kimchipot":    "1498654896293-37aacf113fd9", // 韓式鍋
-  "rec-grapork":      "1562802378-063ec186a863",    // 打拋豬
-  "rec-lazyfish":     "1519708227418-c8fd9a32b7a2", // 香草魚
-  "rec-3cupcn":       "1604908176997-125f25cc6f3d", // 三杯雞
-  "rec-tomatoegg":    "1525351484163-7529414344d8", // 番茄炒蛋
-  "rec-oyakodon":     "1547592180-85f173990554",    // 親子丼
-  "rec-spicypork":    "1590301157890-4810ed352733", // 辣炒豬
-  "rec-vnpho":        "1569718212165-3a8278d5f624", // 越式米線
-  "rec-butterchicken":"1585937421612-70a008356fbe", // 奶油咖哩
-  "rec-mexbeef":      "1504674900247-0877df9cc836", // 墨式牛肉
-  "rec-steamfish":    "1519708227418-c8fd9a32b7a2", // 清蒸魚
-  "rec-clampasta":    "1563379926898-05f4575a45d8", // 蛤蜊麵
-  "rec-scallionpork": "1555126634-323283e090fa",    // 蔥爆豬
-  "rec-misonabe":     "1540189549336-e6e99eb4b935", // 味噌鍋
-  "rec-pumpkincurry": "1476224203421-74177e022103", // 南瓜咖哩
-  "rec-medchicken":   "1532550884653-71e7c14c8f19", // 迷迭香雞
-  "rec-carbonara":    "1473093295043-cdd812d0e601", // 培根義麵
-  "rec-bibimbap":     "1590301157890-4810ed352733", // 石鍋拌飯
-  "rec-padthai":      "1562802378-063ec186a863",    // 炒河粉
-  "rec-teriyaki-salmon": "1467003909585-2f8a72700288", // 照燒鮭魚
-  "rec-karaage":      "1604908176997-125f25cc6f3d", // 唐揚炸雞
-  "rec-burger-patty": "1568901346375-23c9450c58cd", // 漢堡排
-  "rec-egg-fried-rice":"1603133872878-684f208fb84b",// 蛋炒飯
-  "rec-green-curry":  "1585937421612-70a008356fbe", // 綠咖哩
-  "rec-dal":          "1546069901-ba9599a7e63c",    // 印度扁豆
-  "rec-tacos":        "1504674900247-0877df9cc836", // 塔可
-  "rec-greek-salad":  "1512621776951-a57141f2eefd", // 希臘沙拉
+  // ── 日式 ──
+  "rec-sukiyaki":       "1679279726946-a158b8bcaa23", // 壽喜燒滑蛋丼
+  "rec-oyakodon":       "1762398948309-efc21c1f3764", // 雞肉親子丼
+  "rec-misonabe":       "1665594051407-7385d281ad76", // 味噌豬肉蔬菜鍋
+  "rec-onepotpasta":    "1551183053-bf91798d047f",    // 番茄義大利麵
+  "rec-lazyfish":       "1519708227418-c8fd9a32b7a2", // 香草魚
+  "rec-teriyaki-salmon":"1467003909585-2f8a72700288", // 照燒鮭魚
+  "rec-karaage":        "1604908176997-125f25cc6f3d", // 唐揚炸雞
+  // ── 韓式 ──
+  "rec-kimchipot":      "1760228865341-675704c22a5b", // 泡菜海鮮豆腐年糕鍋
+  "rec-spicypork":      "1713047203705-44dd7d762d0c", // 辣炒豬肉飯
+  "rec-bibimbap":       "1590301157890-4810ed352733", // 石鍋拌飯
+  // ── 泰式 ──
+  "rec-grapork":        "1580651315530-69c8e0026377", // 打拋豬肉碎
+  "rec-pumpkincurry":   "1619161208416-b7d5f04c5b99", // 椰汁南瓜咖哩
+  "rec-padthai":        "1562802378-063ec186a863",    // 炒河粉
+  "rec-butterchicken":  "1585937421612-70a008356fbe", // 奶油咖哩
+  "rec-green-curry":    "1585937421612-70a008356fbe", // 綠咖哩
+  // ── 越式 ──
+  "rec-vnpho":          "1555126634-323283e090fa",    // 雞肉米線
+  // ── 墨式 ──
+  "rec-mexbeef":        "1760504526069-ff0f8bf6e4ca", // 辣牛肉飯碗
+  "rec-tacos":          "1504674900247-0877df9cc836", // 塔可
+  // ── 台式家常 ──
+  "rec-3cupcn":         "1705088293300-8fc8c7be90e2", // 三杯雞
+  "rec-tomatoegg":      "1599906515651-bee239348c75", // 番茄炒蛋
+  "rec-steamfish":      "1760504526044-840cade997b2", // 薑蔥清蒸鱸魚
+  "rec-scallionpork":   "1564834724105-918b73d1b9e0", // 蔥爆豬里肌
+  "rec-mapotofu":       "1769065647078-f067eb768035", // 麻婆豆腐
+  "rec-lu-rou":         "1679279726937-122c49626802", // 滷肉飯
+  "rec-pork-chop":      "1625144093498-bf62fca631c5", // 香煎黑胡椒排骨
+  "rec-radish-egg":     "1677137261161-0095c10418ef", // 菜脯蛋
+  // ── 台式快炒 ──
+  "rec-leek-pork":      "1701480253822-1842236c9a97", // 韭黃炒豬肉絲
+  "rec-clam-basil":     "1709433420392-ff3396eba541", // 九層塔炒蜆仔
+  "rec-sate-beef":      "1692296979796-c1a254126640", // 沙茶牛肉炒空心菜
+  // ── 義式 ──
+  "rec-clampasta":      "1563379926898-05f4575a45d8", // 蛤蜊麵
+  "rec-carbonara":      "1473093295043-cdd812d0e601", // 培根義麵
+  // ── 美式 ──
+  "rec-burger-patty":   "1568901346375-23c9450c58cd", // 漢堡排
+  "rec-egg-fried-rice": "1603133872878-684f208fb84b", // 蛋炒飯
+  // ── 地中海 ──
+  "rec-greek-salad":    "1512621776951-a57141f2eefd", // 希臘沙拉
+  // ── 印度 ──
+  "rec-dal":            "1546069901-ba9599a7e63c",    // 印度扁豆
+  // ── 其他 ──
+  "rec-medchicken":     "1532550884653-71e7c14c8f19", // 迷迭香雞
 };
 
 function getRecipeImageUrl(recipe) {
