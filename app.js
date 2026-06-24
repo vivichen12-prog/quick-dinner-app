@@ -3391,8 +3391,8 @@ function initHeroCarousel() {
   const dotsWrap  = document.getElementById("carousel-dots");
   if (!track || typeof RECIPES_DB === "undefined") return;
 
-  // 挑 6 道有圖片的食譜
-  const picks = RECIPES_DB.slice(0, 6);
+  // 從全部食譜隨機挑 12 道（每次載入順序不同）
+  const picks = [...RECIPES_DB].sort(() => Math.random() - 0.5).slice(0, 12);
   _carouselTotal = picks.length;
 
   picks.forEach((recipe, i) => {
